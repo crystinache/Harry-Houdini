@@ -39,8 +39,8 @@ export default function App() {
   const touchStartScale = useRef<number>(1);
   const lastCenter = useRef<{x: number, y: number} | null>(null);
  
-  const valRef = useRef<string | null>(null);
-  const suitRef = useRef<string | null>(null);
+  const valRef = useRef<string | null>(localStorage.getItem("houdini_val"));
+  const suitRef = useRef<string | null>(localStorage.getItem("houdini_suit"));
 
   const suits = [
     { symbol: "♥", color: "text-red-600" },
@@ -60,19 +60,23 @@ export default function App() {
   useEffect(() => {
     const img = new Image();
     img.src = posterUrl;
-    img.onload = () => setIsLoaded(true);
+    if (img.complete) {
+      setIsLoaded(true);
+    } else {
+      img.onload = () => setIsLoaded(true);
+    }
   }, []);
 
   // Gestione dei gesti Touch per Zoom (Pinch) e Pan
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!containerRef.current) return;
 
-    // 1. NUOVA LOGICA DI SELEZIONE
+    const rect = containerRef.current.getBoundingClientRect();
     const currentlyValSet = valRef.current !== null;
     const currentlySuitSet = suitRef.current !== null;
 
-    if (!currentlyValSet && e.touches.length === 1) {
-      const rect = containerRef.current.getBoundingClientRect();
+    // A. SELEZIONE VALORE (1° dito)
+    if (!currentlyValSet && e.touches.length >= 1) {
       const touch = e.touches[0];
       const relX = (touch.clientX - rect.left) / rect.width;
       const relY = (touch.clientY - rect.top) / rect.height;
@@ -96,8 +100,13 @@ export default function App() {
         setSelectedValue("K");
         valRef.current = "K";
       }
-    } else if (currentlyValSet && !currentlySuitSet && e.touches.length === 2) {
-      // Secondo tocco determina il seme basato sui quadranti dello schermo
+    }
+
+    // B. SELEZIONE SEME (2° dito - può avvenire anche istantaneamente se length >= 2)
+    // Usiamo l'ultimo valore disponibile per currentlyValSet (o quello appena impostato sopra)
+    const valIsNowSet = valRef.current !== null;
+    if (valIsNowSet && !currentlySuitSet && e.touches.length >= 2) {
+      // Secondo tocco determina il seme basato sui quadranti dello schermo (visto che è relativo all'intera viewport)
       const touch = e.touches[1];
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -241,7 +250,10 @@ export default function App() {
 
           {/* Zona di RESET su "LONDON" (In basso a DESTRA) */}
           <div 
-            onPointerDown={handleReset}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              handleReset(e);
+            }}
             className="absolute bottom-[2%] right-[2%] w-[30%] h-[10%] cursor-pointer z-[60]"
           />
 
