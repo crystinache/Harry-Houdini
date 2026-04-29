@@ -44,34 +44,38 @@ export default function App() {
     img.onload = () => setIsLoaded(true);
   }, []);
 
-  // Gestione dei gesti Touch per Zoom (Pinch) e Pan
-  const handleTouchStart = (e: React.TouchEvent) => {
-    // Manual Hit Test per selezione immediata (funziona solo se la selezione non è completa)
-    if (containerRef.current && !isSelectionDone) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const gridLeft = 0.05;
-      const gridWidth = 0.90;
-      const gridTop = 0.22;
-      const gridHeight = 0.56;
+  // Funzione di Hit Test centralizzata per rilevare selezione di semi e valori
+  const performSelectionHitTest = (touches: React.TouchList | Touch[]) => {
+    if (!containerRef.current || isSelectionDone) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const gridLeft = 0.05;
+    const gridWidth = 0.90;
+    const gridTop = 0.22;
+    const gridHeight = 0.56;
 
-      for (let i = 0; i < e.touches.length; i++) {
-        const touch = e.touches[i];
-        const relX = (touch.clientX - rect.left) / rect.width;
-        const relY = (touch.clientY - rect.top) / rect.height;
+    for (let i = 0; i < touches.length; i++) {
+      const touch = touches[i];
+      const relX = (touch.clientX - rect.left) / rect.width;
+      const relY = (touch.clientY - rect.top) / rect.height;
 
-        if (relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight)) {
-          const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
-          const row = Math.floor((relY - gridTop) / (gridHeight / 4));
-          
-          if (row === 0 && col >= 0 && col < 4) {
-            setSelectedSuit(suits[col].symbol);
-          } else if (row > 0) {
-            const valIdx = (row - 1) * 4 + col;
-            if (valIdx >= 0 && valIdx < values.length) setSelectedValue(values[valIdx]);
-          }
+      if (relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight)) {
+        const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
+        const row = Math.floor((relY - gridTop) / (gridHeight / 4));
+        
+        if (row === 0 && col >= 0 && col < 4) {
+          setSelectedSuit(suits[col].symbol);
+        } else if (row > 0) {
+          const valIdx = (row - 1) * 4 + col;
+          if (valIdx >= 0 && valIdx < values.length) setSelectedValue(values[valIdx]);
         }
       }
     }
+  };
+
+  // Gestione dei gesti Touch per Zoom (Pinch) e Pan
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Manual Hit Test per selezione immediata
+    performSelectionHitTest(e.touches);
 
     if (e.touches.length === 2) {
       const d = Math.hypot(
@@ -93,6 +97,9 @@ export default function App() {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    // Hit test durante il movimento per permettere selezione "al volo"
+    performSelectionHitTest(e.touches);
+
     // 1. Gestione Pinch-to-Zoom
     if (e.touches.length === 2 && touchStartDist.current !== null) {
       const currentDist = Math.hypot(
@@ -238,7 +245,6 @@ export default function App() {
               {suits.map((suit) => (
                 <div 
                   key={suit.symbol} 
-                  onPointerDown={(e) => { e.stopPropagation(); setSelectedSuit(suit.symbol); }}
                   className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'opacity-0 scale-50' : 'hover:bg-white/10 active:bg-white/20'} ${suit.color}`}
                 >
                   {suit.symbol}
@@ -249,7 +255,6 @@ export default function App() {
               {values.map((val, i) => (
                 <div 
                   key={i} 
-                  onPointerDown={(e) => { e.stopPropagation(); setSelectedValue(val); }}
                   className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : 'hover:bg-white/10 active:bg-white/20'}`}
                 >
                   {val}
