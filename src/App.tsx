@@ -39,7 +39,7 @@ export default function App() {
     { symbol: "♠", color: "text-white" }
   ];
 
-  const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q'];
 
   // Sincronizza i ref
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function App() {
       const gridWidth = 0.90;
       const gridTop = 0.22;
       const gridHeight = 0.56;
-      const rowsCount = 5; // 4 semi + 13 valori = 17 elementi -> 5 righe da 4
+      const rowsCount = 4; // 4 semi + 12 valori = 16 elementi -> 4 righe da 4
 
       for (let i = 0; i < e.changedTouches.length; i++) {
         const touch = e.changedTouches[i];
@@ -249,7 +249,7 @@ export default function App() {
         {isLoaded && !isSelectionDone && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div 
-              className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-5 bg-white/5"
+              className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-4 bg-white/5"
               style={{
                 width: '90%',
                 height: '56%',
