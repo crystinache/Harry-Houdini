@@ -46,34 +46,41 @@ export default function App() {
 
   // Gestione dei gesti Touch per Zoom (Pinch) e Pan
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Manual Hit Test per selezione immediata durante il pinch
-    if (e.touches.length === 2 && containerRef.current) {
+    // Manual Hit Test per selezione immediata
+    if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       let newVal: string | null = null;
       let newSuit: string | null = null;
+
+      const gridLeft = 0.05;
+      const gridWidth = 0.90;
+      const gridTop = 0.22;
+      const gridHeight = 0.56;
 
       for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         const relX = (touch.clientX - rect.left) / rect.width;
         const relY = (touch.clientY - rect.top) / rect.height;
 
-        // Hit test Valori
-        if (relX >= 0.05 && relX <= 0.6 && relY >= 0.22 && relY <= 0.78) {
-          const col = Math.floor((relX - 0.05) / (0.55 / 3));
-          const row = Math.floor((relY - 0.22) / (0.56 / 4));
-          const idx = row * 3 + col;
-          if (idx >= 0 && idx < values.length) newVal = values[idx];
-        }
-        // Hit test Semi
-        if (relX >= 0.6 && relX <= 1.0 && relY >= 0.22 && relY <= 0.78) {
-          const row = Math.floor((relY - 0.22) / (0.56 / 4));
-          if (row >= 0 && row < suits.length) newSuit = suits[row].symbol;
+        // Nuova logica Hit test per griglia 4x4
+        if (relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight)) {
+          const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
+          const row = Math.floor((relY - gridTop) / (gridHeight / 4));
+          
+          if (row === 0 && col >= 0 && col < 4) {
+            newSuit = suits[col].symbol;
+          } else if (row > 0) {
+            const valIdx = (row - 1) * 4 + col;
+            if (valIdx >= 0 && valIdx < values.length) newVal = values[valIdx];
+          }
         }
       }
 
       if (newVal) setSelectedValue(newVal);
       if (newSuit) setSelectedSuit(newSuit);
+    }
 
+    if (e.touches.length === 2) {
       const d = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -136,7 +143,6 @@ export default function App() {
   };
 
   const handleReset = (e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
     const now = Date.now();
     if (now - lastResetTap < 500) {
       setSelectedValue(null);
@@ -182,10 +188,10 @@ export default function App() {
           style={{ opacity: isLoaded ? 1 : 0 }}
         />
 
-        {/* Zona di RESET su "LONDON" */}
+        {/* Zona di RESET su "LONDON" (In basso a DESTRA) */}
         <div 
           onPointerDown={handleReset}
-          className="absolute bottom-[2%] left-[30%] w-[40%] h-[8%] cursor-pointer z-[60]"
+          className="absolute bottom-[2%] right-[2%] w-[30%] h-[10%] cursor-pointer z-[60]"
         />
 
         {/* VALORI NEGLI OCCHI (Sempre presenti, diventano visibili allo zoom) */}
@@ -196,10 +202,10 @@ export default function App() {
               className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
                 left: '44.3%',
-                top: '51.5%',
+                top: '49.8%',
                 width: '1.5%',
                 height: '1.5%',
-                fontSize: '0.6vw',
+                fontSize: '0.7vw',
                 lineHeight: 1,
                 opacity: scale.get() > 1.25 ? 0.9 : 0
               }}
@@ -211,10 +217,10 @@ export default function App() {
               className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
                 left: '55.7%',
-                top: '51.5%',
+                top: '49.8%',
                 width: '1.5%',
                 height: '1.5%',
-                fontSize: '0.6vw',
+                fontSize: '0.7vw',
                 lineHeight: 1,
                 opacity: scale.get() > 1.25 ? 0.9 : 0
               }}
@@ -224,47 +230,37 @@ export default function App() {
           </>
         )}
 
-        {/* GRIGLIE DI SELEZIONE (Scompaiono non appena iniziamo lo zoom se la selezione è pronta) */}
+        {/* GRIGLIE DI SELEZIONE */}
         {isLoaded && (!isSelectionDone || scale.get() < 1.05) && (
           <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${scale.get() > 1.05 ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
-            {/* Griglia Valori */}
             <div 
-              className="absolute border-2 border-white/40 grid grid-cols-3 grid-rows-4 bg-white/5"
+              className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-4 bg-white/5"
               style={{
-                width: '55%',
+                width: '90%',
                 height: '56%',
                 left: '5%',
                 top: '22%',
               }}
             >
-              {values.map((val, i) => (
-                <div 
-                  key={i} 
-                  onPointerDown={() => setSelectedValue(val)}
-                  className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'bg-white/30 scale-95 shadow-inner' : 'hover:bg-white/10 active:bg-white/20'}`}
-                >
-                  {val}
-                </div>
-              ))}
-            </div>
-
-            {/* Griglia Semi */}
-            <div 
-              className="absolute border-2 border-white/40 border-l-0 grid grid-cols-1 grid-rows-4 bg-black/20"
-              style={{
-                width: '40%',
-                height: '56%',
-                left: '60%',
-                top: '22%',
-              }}
-            >
+              {/* Riga 1: Semi - Scompaiono quando selezionati */}
               {suits.map((suit) => (
                 <div 
                   key={suit.symbol} 
-                  onPointerDown={() => setSelectedSuit(suit.symbol)}
-                  className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'bg-white/30 scale-95 shadow-inner' : 'hover:bg-white/10 active:bg-white/20'} ${suit.color}`}
+                  onPointerDown={(e) => { e.stopPropagation(); setSelectedSuit(suit.symbol); }}
+                  className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'opacity-0 scale-50' : 'hover:bg-white/10 active:bg-white/20'} ${suit.color}`}
                 >
                   {suit.symbol}
+                </div>
+              ))}
+              
+              {/* Righe 2-4: Valori - Scompaiono quando selezionati */}
+              {values.map((val, i) => (
+                <div 
+                  key={i} 
+                  onPointerDown={(e) => { e.stopPropagation(); setSelectedValue(val); }}
+                  className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : 'hover:bg-white/10 active:bg-white/20'}`}
+                >
+                  {val}
                 </div>
               ))}
             </div>
