@@ -31,7 +31,6 @@ export default function App() {
  
   const valRef = useRef<string | null>(null);
   const suitRef = useRef<string | null>(null);
-  const lastSuitTapRef = useRef<{ time: number, index: number } | null>(null);
 
   const suits = [
     { symbol: "♥", color: "text-red-600" },
@@ -59,7 +58,6 @@ export default function App() {
     if (!containerRef.current) return;
 
     // 1. HIT TEST per la SELEZIONE (solo se non abbiamo finito)
-    // Usiamo changedTouches per agire solo sulle nuove dita
     const currentlyDone = valRef.current !== null && suitRef.current !== null;
     
     if (!currentlyDone) {
@@ -68,40 +66,42 @@ export default function App() {
       const gridWidth = 0.90;
       const gridTop = 0.22;
       const gridHeight = 0.56;
-      const rowsCount = 4; // 4 semi + 12 valori = 16 elementi -> 4 righe da 4
+      const rowsCount = 4;
 
       for (let i = 0; i < e.changedTouches.length; i++) {
         const touch = e.changedTouches[i];
         const relX = (touch.clientX - rect.left) / rect.width;
         const relY = (touch.clientY - rect.top) / rect.height;
 
-        if (relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight)) {
+        const isInsideGrid = relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight);
+
+        if (isInsideGrid) {
           const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
           const row = Math.floor((relY - gridTop) / (gridHeight / rowsCount));
           
           if (row === 0 && col >= 0 && col < 4 && suitRef.current === null) {
-            const now = Date.now();
+            // Selezione Seme
             const s = suits[col].symbol;
-            
-            // Verifica Doppio Tocco sul Seme
-            if (lastSuitTapRef.current && lastSuitTapRef.current.index === col && (now - lastSuitTapRef.current.time < 500)) {
-              setSelectedSuit(s);
-              setSelectedValue("K");
-              suitRef.current = s;
-              valRef.current = "K";
-              lastSuitTapRef.current = null;
-            } else {
-              setSelectedSuit(s);
-              suitRef.current = s;
-              lastSuitTapRef.current = { time: now, index: col };
-            }
-          } else if (row > 0 && valRef.current === null) {
+            setSelectedSuit(s);
+            suitRef.current = s;
+          } else if (row > 0 && valRef.current === null && suitRef.current !== null) {
+            // Selezione Valore A-Q
             const valIdx = (row - 1) * 4 + col;
             if (valIdx >= 0 && valIdx < values.length) {
               const v = values[valIdx];
               setSelectedValue(v);
               valRef.current = v;
             }
+          } else if (row === 0 && suitRef.current !== null && valRef.current === null) {
+            // Tocco sulla riga semi quando il seme è già scelto = K
+            setSelectedValue("K");
+            valRef.current = "K";
+          }
+        } else {
+          // TOCCO FUORI DALLA GRIGLIA -> Se il seme è scelto, è un RE (K)
+          if (suitRef.current !== null && valRef.current === null) {
+            setSelectedValue("K");
+            valRef.current = "K";
           }
         }
       }
@@ -248,7 +248,7 @@ export default function App() {
               top: '36.2%',
               width: '1.5%',
               height: '1.5%',
-              fontSize: '0.38vh',
+              fontSize: '0.33vh',
               lineHeight: 1,
               opacity: 0.9
             }}
