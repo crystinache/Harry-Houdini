@@ -298,11 +298,11 @@ export default function App() {
             {selectedSuit || "♥"}
           </div>
 
-          {/* GRIGLIE DI SELEZIONE: Scompaiono immediatamente dopo aver scelto il valore */}
+          {/* GRIGLIE DI SELEZIONE: Invisibili ma attive tramite logica touch */}
           {isLoaded && selectedValue === null && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[40]">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[40] opacity-0">
               <div 
-                className="absolute border-4 border-white/60 grid grid-cols-4 grid-rows-3 bg-black/40 backdrop-blur-sm"
+                className="absolute grid grid-cols-4 grid-rows-3"
                 style={{
                   width: '90%',
                   height: '56%',
@@ -310,11 +310,11 @@ export default function App() {
                   top: '22%',
                 }}
               >
-                {/* Righe 1-3: Valori */}
+                {/* Righe 1-3: Valori (Invisibili) */}
                 {values.map((val, i) => (
                   <div 
                     key={i} 
-                    className="border border-white/40 flex items-center justify-center text-white text-5xl sm:text-7xl font-bold"
+                    className="flex items-center justify-center"
                   >
                     {val}
                   </div>
