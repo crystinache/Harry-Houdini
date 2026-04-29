@@ -19,16 +19,16 @@ export default function App() {
   const scale = useMotionValue(1);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-
+ 
   // Molle per rendere i movimenti fluidi e naturali
   const smoothScale = useSpring(scale, { damping: 25, stiffness: 120 });
   const smoothX = useSpring(x, { damping: 25, stiffness: 120 });
   const smoothY = useSpring(y, { damping: 25, stiffness: 120 });
-
+ 
   const touchStartDist = useRef<number | null>(null);
   const touchStartScale = useRef<number>(1);
   const lastCenter = useRef<{x: number, y: number} | null>(null);
-
+ 
   const valRef = useRef<string | null>(null);
   const suitRef = useRef<string | null>(null);
 
@@ -197,12 +197,12 @@ export default function App() {
       >
         <div 
           ref={containerRef}
-          className="relative h-full w-auto shadow-[0_0_100px_rgba(0,0,0,0.9)] flex items-center justify-center"
+          className="relative max-h-[100dvh] max-w-full aspect-[2/3] shadow-[0_0_100px_rgba(0,0,0,0.9)] flex items-center justify-center bg-[#0a0a0a]"
         >
           <img 
             src={posterUrl} 
             alt="Harry Houdini" 
-            className="h-full w-auto block pointer-events-none transition-opacity duration-1000"
+            className="w-full h-full object-contain pointer-events-none transition-opacity duration-1000"
             style={{ opacity: isLoaded ? 1 : 0 }}
           />
 
@@ -220,7 +220,7 @@ export default function App() {
               top: '37.8%',
               width: '1.5%',
               height: '1.5%',
-              fontSize: '1.2vh',
+              fontSize: '1.1vh',
               lineHeight: 1,
               opacity: 0.9
             }}
@@ -235,7 +235,7 @@ export default function App() {
               top: '37.5%',
               width: '1.5%',
               height: '1.5%',
-              fontSize: '1.2vh',
+              fontSize: '1.1vh',
               lineHeight: 1,
               opacity: 0.9
             }}
