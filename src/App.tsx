@@ -8,8 +8,8 @@ import { motion, useSpring, useMotionValue } from "motion/react";
 
 export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<string | null>("K");
-  const [selectedSuit, setSelectedSuit] = useState<string | null>("♥");
+  const [selectedValue, setSelectedValue] = useState<string | null>(null);
+  const [selectedSuit, setSelectedSuit] = useState<string | null>(null);
   const [lastResetTap, setLastResetTap] = useState(0);
   
   const posterUrl = "https://i.imgur.com/MJzV4Fm.png";
@@ -29,8 +29,8 @@ export default function App() {
   const touchStartScale = useRef<number>(1);
   const lastCenter = useRef<{x: number, y: number} | null>(null);
 
-  const valRef = useRef<string | null>("K");
-  const suitRef = useRef<string | null>("♥");
+  const valRef = useRef<string | null>(null);
+  const suitRef = useRef<string | null>(null);
 
   const suits = [
     { symbol: "♥", color: "text-red-600" },
@@ -188,98 +188,96 @@ export default function App() {
 
       {/* Contenitore Immagine con Zoom e Pan fluidi */}
       <motion.div 
-        ref={containerRef}
         style={{ 
           scale: smoothScale,
           x: smoothX,
           y: smoothY,
         }}
-        className="relative h-[100vh] aspect-[2/3] max-w-full flex items-center justify-center shadow-[0_0_100px_rgba(0,0,0,0.9)]"
+        className="relative h-[100vh] flex items-center justify-center"
       >
-        <img 
-          src={posterUrl} 
-          alt="Harry Houdini" 
-          className="w-full h-full object-contain pointer-events-none transition-opacity duration-1000"
-          style={{ opacity: isLoaded ? 1 : 0 }}
-        />
-
-        {/* Zona di RESET su "LONDON" (In basso a DESTRA) */}
         <div 
-          onPointerDown={handleReset}
-          className="absolute bottom-[2%] right-[2%] w-[30%] h-[10%] cursor-pointer z-[60]"
-        />
+          ref={containerRef}
+          className="relative h-full w-auto shadow-[0_0_100px_rgba(0,0,0,0.9)] flex items-center justify-center"
+        >
+          <img 
+            src={posterUrl} 
+            alt="Harry Houdini" 
+            className="h-full w-auto block pointer-events-none transition-opacity duration-1000"
+            style={{ opacity: isLoaded ? 1 : 0 }}
+          />
 
-        {/* VALORI NEGLI OCCHI (Sempre presenti, diventano visibili allo zoom) */}
-        {(selectedValue || selectedSuit) && (
-          <>
-            {/* Valore nell'occhio sinistro (suo destro) */}
-            <div 
-              className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
-              style={{
-                left: '51.6%',
-                top: '37.8%',
-                width: '1.5%',
-                height: '1.5%',
-                fontSize: '0.7vw',
-                lineHeight: 1,
-                opacity: selectedValue ? 0.9 : 0
-              }}
-            >
-              {selectedValue}
-            </div>
+          {/* Zona di RESET su "LONDON" (In basso a DESTRA) */}
+          <div 
+            onPointerDown={handleReset}
+            className="absolute bottom-[2%] right-[2%] w-[30%] h-[10%] cursor-pointer z-[60]"
+          />
 
-            {/* Seme nell'occhio destro (suo sinistro) */}
-            <div 
-              className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
-              style={{
-                left: '64.1%',
-                top: '37.5%',
-                width: '1.5%',
-                height: '1.5%',
-                fontSize: '0.7vw',
-                lineHeight: 1,
-                opacity: selectedSuit ? 0.9 : 0
-              }}
-            >
-              {selectedSuit}
-            </div>
-          </>
-        )}
-
-        {/* GRIGLIE DI SELEZIONE: Scompaiono immediatamente se la selezione è completa */}
-        {isLoaded && !isSelectionDone && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div 
-              className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-4 bg-white/5"
-              style={{
-                width: '90%',
-                height: '56%',
-                left: '5%',
-                top: '22%',
-              }}
-            >
-              {/* Riga 1: Semi - Scompaiono quando selezionati */}
-              {suits.map((suit) => (
-                <div 
-                  key={suit.symbol} 
-                  className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'opacity-0 scale-50' : ''} ${suit.color}`}
-                >
-                  {suit.symbol}
-                </div>
-              ))}
-              
-              {/* Righe 2-4: Valori - Scompaiono quando selezionati */}
-              {values.map((val, i) => (
-                <div 
-                  key={i} 
-                  className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : ''}`}
-                >
-                  {val}
-                </div>
-              ))}
-            </div>
+          {/* VALORI NEGLI OCCHI (Visible default or selected value) */}
+          <div 
+            className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
+            style={{
+              left: '51.6%',
+              top: '37.8%',
+              width: '1.5%',
+              height: '1.5%',
+              fontSize: '1.2vh',
+              lineHeight: 1,
+              opacity: 0.9
+            }}
+          >
+            {selectedValue || "K"}
           </div>
-        )}
+
+          <div 
+            className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
+            style={{
+              left: '64.1%',
+              top: '37.5%',
+              width: '1.5%',
+              height: '1.5%',
+              fontSize: '1.2vh',
+              lineHeight: 1,
+              opacity: 0.9
+            }}
+          >
+            {selectedSuit || "♥"}
+          </div>
+
+          {/* GRIGLIE DI SELEZIONE: Scompaiono immediatamente se la selezione è completa */}
+          {isLoaded && !isSelectionDone && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div 
+                className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-4 bg-white/5"
+                style={{
+                  width: '90%',
+                  height: '56%',
+                  left: '5%',
+                  top: '22%',
+                }}
+              >
+                {/* Riga 1: Semi - Scompaiono quando selezionati */}
+                {suits.map((suit) => (
+                  <div 
+                    key={suit.symbol} 
+                    className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'opacity-0 scale-50' : ''} ${suit.color}`}
+                  >
+                    {suit.symbol}
+                  </div>
+                ))}
+                
+                {/* Righe 2-4: Valori - Scompaiono quando selezionati */}
+                {values.map((val, i) => (
+                  <div 
+                    key={i} 
+                    className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : ''}`}
+                  >
+                    {val}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </motion.div>
 
       {/* Illuminazione ambientale */}
