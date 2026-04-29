@@ -60,11 +60,16 @@ export default function App() {
   useEffect(() => {
     const img = new Image();
     img.src = posterUrl;
+    const handleLoad = () => setIsLoaded(true);
     if (img.complete) {
-      setIsLoaded(true);
+      handleLoad();
     } else {
-      img.onload = () => setIsLoaded(true);
+      img.onload = handleLoad;
+      img.onerror = handleLoad; // Fallback in case of error
     }
+    // Fallback di emergenza
+    const timer = setTimeout(() => setIsLoaded(true), 2000);
+    return () => clearTimeout(timer);
   }, []);
 
   // Gestione dei gesti Touch per Zoom (Pinch) e Pan
@@ -81,10 +86,12 @@ export default function App() {
       const relX = (touch.clientX - rect.left) / rect.width;
       const relY = (touch.clientY - rect.top) / rect.height;
 
+      // Coordinate della griglia (90% larghezza, 56% altezza, 22% dall'alto)
       const gridLeft = 0.05;
       const gridWidth = 0.90;
       const gridTop = 0.22;
       const gridHeight = 0.56;
+      
       const isInsideGrid = relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight);
 
       if (isInsideGrid) {
@@ -97,6 +104,8 @@ export default function App() {
           valRef.current = v;
         }
       } else {
+        // Se il tocco è avvenuto, ma fuori dalla griglia -> K
+        // Verifichiamo che non sia un tocco nella zona reset
         setSelectedValue("K");
         valRef.current = "K";
       }
@@ -107,7 +116,7 @@ export default function App() {
     const valIsNowSet = valRef.current !== null;
     if (valIsNowSet && !currentlySuitSet && e.touches.length >= 2) {
       // Secondo tocco determina il seme basato sui quadranti dello schermo (visto che è relativo all'intera viewport)
-      const touch = e.touches[1];
+      const touch = e.touches[e.touches.length - 1]; // Prendi l'ultimo tocco aggiunto
       const w = window.innerWidth;
       const h = window.innerHeight;
 
@@ -250,11 +259,12 @@ export default function App() {
 
           {/* Zona di RESET su "LONDON" (In basso a DESTRA) */}
           <div 
+            onTouchStart={(e) => e.stopPropagation()}
             onPointerDown={(e) => {
               e.stopPropagation();
               handleReset(e);
             }}
-            className="absolute bottom-[2%] right-[2%] w-[30%] h-[10%] cursor-pointer z-[60]"
+            className="absolute bottom-[2%] right-[2%] w-[30%] h-[10%] cursor-pointer z-[60] touch-none"
           />
 
           {/* VALORI NEGLI OCCHI (Visible default or selected value) */}
@@ -289,10 +299,10 @@ export default function App() {
           </div>
 
           {/* GRIGLIE DI SELEZIONE: Scompaiono immediatamente dopo aver scelto il valore */}
-          {isLoaded && !selectedValue && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {isLoaded && selectedValue === null && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[40]">
               <div 
-                className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-3 bg-white/5"
+                className="absolute border-4 border-white/60 grid grid-cols-4 grid-rows-3 bg-black/40 backdrop-blur-sm"
                 style={{
                   width: '90%',
                   height: '56%',
@@ -300,11 +310,11 @@ export default function App() {
                   top: '22%',
                 }}
               >
-                {/* Righe 1-3: Valori - Scompaiono quando selezionati */}
+                {/* Righe 1-3: Valori */}
                 {values.map((val, i) => (
                   <div 
                     key={i} 
-                    className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : ''}`}
+                    className="border border-white/40 flex items-center justify-center text-white text-5xl sm:text-7xl font-bold"
                   >
                     {val}
                   </div>
