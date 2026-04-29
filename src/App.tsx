@@ -248,7 +248,7 @@ export default function App() {
               top: '36.2%',
               width: '1.5%',
               height: '1.5%',
-              fontSize: '0.33vh',
+              fontSize: '0.29vh',
               lineHeight: 1,
               opacity: 0.9
             }}
@@ -256,11 +256,11 @@ export default function App() {
             {selectedSuit || "♥"}
           </div>
 
-          {/* GRIGLIE DI SELEZIONE: Scompaiono immediatamente se la selezione è completa */}
+          {/* GRIGLIE DI SELEZIONE: Invisibili ma attive tramite logica touch */}
           {isLoaded && !isSelectionDone && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0">
               <div 
-                className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-4 bg-white/5"
+                className="absolute grid grid-cols-4 grid-rows-4"
                 style={{
                   width: '90%',
                   height: '56%',
@@ -268,24 +268,9 @@ export default function App() {
                   top: '22%',
                 }}
               >
-                {/* Riga 1: Semi - Scompaiono quando selezionati */}
-                {suits.map((suit) => (
-                  <div 
-                    key={suit.symbol} 
-                    className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'opacity-0 scale-50' : ''} ${suit.color}`}
-                  >
-                    {suit.symbol}
-                  </div>
-                ))}
-                
-                {/* Righe 2-4: Valori - Scompaiono quando selezionati */}
-                {values.map((val, i) => (
-                  <div 
-                    key={i} 
-                    className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : ''}`}
-                  >
-                    {val}
-                  </div>
+                {/* Struttura mantenuta per coerenza ma invisibile */}
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-center" />
                 ))}
               </div>
             </div>
