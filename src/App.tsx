@@ -8,9 +8,19 @@ import { motion, useSpring, useMotionValue } from "motion/react";
 
 export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<string | null>(null);
-  const [selectedSuit, setSelectedSuit] = useState<string | null>(null);
+  const [selectedValue, setSelectedValue] = useState<string | null>(() => localStorage.getItem("houdini_val"));
+  const [selectedSuit, setSelectedSuit] = useState<string | null>(() => localStorage.getItem("houdini_suit"));
   const [lastResetTap, setLastResetTap] = useState(0);
+
+  useEffect(() => {
+    if (selectedValue) localStorage.setItem("houdini_val", selectedValue);
+    else localStorage.removeItem("houdini_val");
+  }, [selectedValue]);
+
+  useEffect(() => {
+    if (selectedSuit) localStorage.setItem("houdini_suit", selectedSuit);
+    else localStorage.removeItem("houdini_suit");
+  }, [selectedSuit]);
   
   const posterUrl = "https://i.imgur.com/MJzV4Fm.png";
   const containerRef = useRef<HTMLDivElement>(null);
@@ -173,6 +183,8 @@ export default function App() {
     if (now - lastResetTap < 500) {
       setSelectedValue(null);
       setSelectedSuit(null);
+      localStorage.removeItem("houdini_val");
+      localStorage.removeItem("houdini_suit");
       valRef.current = null;
       suitRef.current = null;
       scale.set(1);
@@ -218,6 +230,14 @@ export default function App() {
             className="w-full h-full object-contain pointer-events-none transition-opacity duration-1000"
             style={{ opacity: isLoaded ? 1 : 0 }}
           />
+
+          {/* Indicatore Griglia Attiva (Punto bianco 2px in alto a destra) */}
+          {isLoaded && !isSelectionDone && (
+            <div 
+              className="absolute top-[1.5%] right-[1.5%] bg-white rounded-full z-10 pointer-events-none"
+              style={{ width: '2px', height: '2px' }}
+            />
+          )}
 
           {/* Zona di RESET su "LONDON" (In basso a DESTRA) */}
           <div 
