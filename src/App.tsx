@@ -29,6 +29,9 @@ export default function App() {
   const touchStartScale = useRef<number>(1);
   const lastCenter = useRef<{x: number, y: number} | null>(null);
 
+  const valRef = useRef<string | null>(null);
+  const suitRef = useRef<string | null>(null);
+
   const suits = [
     { symbol: "♥", color: "text-red-600" },
     { symbol: "♦", color: "text-red-600" },
@@ -36,7 +39,13 @@ export default function App() {
     { symbol: "♠", color: "text-white" }
   ];
 
-  const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q'];
+  const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+  // Sincronizza i ref
+  useEffect(() => {
+    valRef.current = selectedValue;
+    suitRef.current = selectedSuit;
+  }, [selectedValue, selectedSuit]);
 
   useEffect(() => {
     const img = new Image();
@@ -46,28 +55,40 @@ export default function App() {
 
   // Gestione dei gesti Touch per Zoom (Pinch) e Pan
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Manual Hit Test per selezione immediata
-    if (containerRef.current) {
+    if (!containerRef.current) return;
+
+    // 1. HIT TEST per la SELEZIONE (solo se non abbiamo finito)
+    // Usiamo changedTouches per agire solo sulle nuove dita
+    const currentlyDone = valRef.current !== null && suitRef.current !== null;
+    
+    if (!currentlyDone) {
       const rect = containerRef.current.getBoundingClientRect();
       const gridLeft = 0.05;
       const gridWidth = 0.90;
       const gridTop = 0.22;
       const gridHeight = 0.56;
+      const rowsCount = 5; // 4 semi + 13 valori = 17 elementi -> 5 righe da 4
 
-      for (let i = 0; i < e.touches.length; i++) {
-        const touch = e.touches[i];
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
         const relX = (touch.clientX - rect.left) / rect.width;
         const relY = (touch.clientY - rect.top) / rect.height;
 
         if (relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight)) {
           const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
-          const row = Math.floor((relY - gridTop) / (gridHeight / 4));
+          const row = Math.floor((relY - gridTop) / (gridHeight / rowsCount));
           
-          if (row === 0 && col >= 0 && col < 4) {
-            setSelectedSuit(suits[col].symbol);
-          } else if (row > 0) {
+          if (row === 0 && col >= 0 && col < 4 && suitRef.current === null) {
+            const s = suits[col].symbol;
+            setSelectedSuit(s);
+            suitRef.current = s;
+          } else if (row > 0 && valRef.current === null) {
             const valIdx = (row - 1) * 4 + col;
-            if (valIdx >= 0 && valIdx < values.length) setSelectedValue(values[valIdx]);
+            if (valIdx >= 0 && valIdx < values.length) {
+              const v = values[valIdx];
+              setSelectedValue(v);
+              valRef.current = v;
+            }
           }
         }
       }
@@ -93,33 +114,6 @@ export default function App() {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    // Hit test dinamico durante il movimento per catturare selezione mentre si zoomma
-    if (containerRef.current && !isSelectionDone) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const gridLeft = 0.05;
-      const gridWidth = 0.90;
-      const gridTop = 0.22;
-      const gridHeight = 0.56;
-
-      for (let i = 0; i < e.touches.length; i++) {
-        const touch = e.touches[i];
-        const relX = (touch.clientX - rect.left) / rect.width;
-        const relY = (touch.clientY - rect.top) / rect.height;
-
-        if (relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight)) {
-          const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
-          const row = Math.floor((relY - gridTop) / (gridHeight / 4));
-          
-          if (row === 0 && col >= 0 && col < 4) {
-            setSelectedSuit(suits[col].symbol);
-          } else if (row > 0) {
-            const valIdx = (row - 1) * 4 + col;
-            if (valIdx >= 0 && valIdx < values.length) setSelectedValue(values[valIdx]);
-          }
-        }
-      }
-    }
-
     // 1. Gestione Pinch-to-Zoom
     if (e.touches.length === 2 && touchStartDist.current !== null) {
       const currentDist = Math.hypot(
@@ -139,8 +133,8 @@ export default function App() {
       }
       const currentCenter = { x: cx / e.touches.length, y: cy / e.touches.length };
       
-      // Permetti lo spostamento anche se lo zoom è appena iniziato o se la selezione è pronta
-      if (scale.get() > 1.01 || isSelectionDone) {
+      // Sposta l'immagine non appena iniziamo lo zoom
+      if (scale.get() > 1.01) {
         x.set(x.get() + (currentCenter.x - lastCenter.current.x));
         y.set(y.get() + (currentCenter.y - lastCenter.current.y));
       }
@@ -166,6 +160,8 @@ export default function App() {
     if (now - lastResetTap < 500) {
       setSelectedValue(null);
       setSelectedSuit(null);
+      valRef.current = null;
+      suitRef.current = null;
       scale.set(1);
       x.set(0);
       y.set(0);
@@ -214,7 +210,7 @@ export default function App() {
         />
 
         {/* VALORI NEGLI OCCHI (Sempre presenti, diventano visibili allo zoom) */}
-        {isSelectionDone && (
+        {(selectedValue || selectedSuit) && (
           <>
             {/* Valore nell'occhio sinistro (suo destro) */}
             <div 
@@ -226,7 +222,7 @@ export default function App() {
                 height: '1.5%',
                 fontSize: '0.7vw',
                 lineHeight: 1,
-                opacity: isSelectionDone ? 0.9 : 0
+                opacity: selectedValue ? 0.9 : 0
               }}
             >
               {selectedValue}
@@ -241,7 +237,7 @@ export default function App() {
                 height: '1.5%',
                 fontSize: '0.7vw',
                 lineHeight: 1,
-                opacity: isSelectionDone ? 0.9 : 0
+                opacity: selectedSuit ? 0.9 : 0
               }}
             >
               {selectedSuit}
@@ -251,9 +247,9 @@ export default function App() {
 
         {/* GRIGLIE DI SELEZIONE: Scompaiono immediatamente se la selezione è completa */}
         {isLoaded && !isSelectionDone && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div 
-              className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-4 bg-white/5"
+              className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-5 bg-white/5"
               style={{
                 width: '90%',
                 height: '56%',
@@ -265,8 +261,7 @@ export default function App() {
               {suits.map((suit) => (
                 <div 
                   key={suit.symbol} 
-                  onPointerDown={(e) => { e.stopPropagation(); setSelectedSuit(suit.symbol); }}
-                  className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'opacity-0 scale-50' : 'hover:bg-white/10 active:bg-white/20'} ${suit.color}`}
+                  className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'opacity-0 scale-50' : ''} ${suit.color}`}
                 >
                   {suit.symbol}
                 </div>
@@ -276,8 +271,7 @@ export default function App() {
               {values.map((val, i) => (
                 <div 
                   key={i} 
-                  onPointerDown={(e) => { e.stopPropagation(); setSelectedValue(val); }}
-                  className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : 'hover:bg-white/10 active:bg-white/20'}`}
+                  className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : ''}`}
                 >
                   {val}
                 </div>
