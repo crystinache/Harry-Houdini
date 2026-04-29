@@ -255,7 +255,7 @@ export default function App() {
               height: '1.5%',
               fontSize: '0.3vh',
               lineHeight: 1,
-              opacity: 0.9
+              opacity: 0.45
             }}
           >
             {selectedValue || "K"}
@@ -270,7 +270,7 @@ export default function App() {
               height: '1.5%',
               fontSize: '0.29vh',
               lineHeight: 1,
-              opacity: 0.8
+              opacity: 0.45
             }}
           >
             {selectedSuit || "♥"}
