@@ -46,12 +46,9 @@ export default function App() {
 
   // Gestione dei gesti Touch per Zoom (Pinch) e Pan
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Manual Hit Test per selezione immediata
+    // Manual Hit Test per selezione immediata (funziona sia per 1 che per 2 dita)
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      let newVal: string | null = null;
-      let newSuit: string | null = null;
-
       const gridLeft = 0.05;
       const gridWidth = 0.90;
       const gridTop = 0.22;
@@ -62,22 +59,18 @@ export default function App() {
         const relX = (touch.clientX - rect.left) / rect.width;
         const relY = (touch.clientY - rect.top) / rect.height;
 
-        // Nuova logica Hit test per griglia 4x4
         if (relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight)) {
           const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
           const row = Math.floor((relY - gridTop) / (gridHeight / 4));
           
           if (row === 0 && col >= 0 && col < 4) {
-            newSuit = suits[col].symbol;
+            setSelectedSuit(suits[col].symbol);
           } else if (row > 0) {
             const valIdx = (row - 1) * 4 + col;
-            if (valIdx >= 0 && valIdx < values.length) newVal = values[valIdx];
+            if (valIdx >= 0 && valIdx < values.length) setSelectedValue(values[valIdx]);
           }
         }
       }
-
-      if (newVal) setSelectedValue(newVal);
-      if (newSuit) setSelectedSuit(newSuit);
     }
 
     if (e.touches.length === 2) {
@@ -90,7 +83,6 @@ export default function App() {
     }
     
     if (e.touches.length > 0) {
-      // Calcola il centro tra le dita per il panning
       let cx = 0, cy = 0;
       for (let i = 0; i < e.touches.length; i++) {
         cx += e.touches[i].clientX;
@@ -202,7 +194,7 @@ export default function App() {
               className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
                 left: '44.3%',
-                top: '49.8%',
+                top: '55.5%',
                 width: '1.5%',
                 height: '1.5%',
                 fontSize: '0.7vw',
@@ -217,7 +209,7 @@ export default function App() {
               className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
                 left: '55.7%',
-                top: '49.8%',
+                top: '55.5%',
                 width: '1.5%',
                 height: '1.5%',
                 fontSize: '0.7vw',
@@ -230,9 +222,9 @@ export default function App() {
           </>
         )}
 
-        {/* GRIGLIE DI SELEZIONE */}
-        {isLoaded && (!isSelectionDone || scale.get() < 1.05) && (
-          <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${scale.get() > 1.05 ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+        {/* GRIGLIE DI SELEZIONE: Scompaiono immediatamente se la selezione è completa */}
+        {isLoaded && !isSelectionDone && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
             <div 
               className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-4 bg-white/5"
               style={{
