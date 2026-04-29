@@ -67,54 +67,54 @@ export default function App() {
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!containerRef.current) return;
 
-    // 1. HIT TEST per la SELEZIONE (solo se non abbiamo finito)
-    const currentlyDone = valRef.current !== null && suitRef.current !== null;
-    
-    if (!currentlyDone) {
+    // 1. NUOVA LOGICA DI SELEZIONE
+    const currentlyValSet = valRef.current !== null;
+    const currentlySuitSet = suitRef.current !== null;
+
+    if (!currentlyValSet && e.touches.length === 1) {
       const rect = containerRef.current.getBoundingClientRect();
+      const touch = e.touches[0];
+      const relX = (touch.clientX - rect.left) / rect.width;
+      const relY = (touch.clientY - rect.top) / rect.height;
+
       const gridLeft = 0.05;
       const gridWidth = 0.90;
       const gridTop = 0.22;
       const gridHeight = 0.56;
-      const rowsCount = 4;
+      const isInsideGrid = relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight);
 
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const touch = e.changedTouches[i];
-        const relX = (touch.clientX - rect.left) / rect.width;
-        const relY = (touch.clientY - rect.top) / rect.height;
-
-        const isInsideGrid = relX >= gridLeft && relX <= (gridLeft + gridWidth) && relY >= gridTop && relY <= (gridTop + gridHeight);
-
-        if (isInsideGrid) {
-          const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
-          const row = Math.floor((relY - gridTop) / (gridHeight / rowsCount));
-          
-          if (row === 0 && col >= 0 && col < 4 && suitRef.current === null) {
-            // Selezione Seme
-            const s = suits[col].symbol;
-            setSelectedSuit(s);
-            suitRef.current = s;
-          } else if (row > 0 && valRef.current === null && suitRef.current !== null) {
-            // Selezione Valore A-Q
-            const valIdx = (row - 1) * 4 + col;
-            if (valIdx >= 0 && valIdx < values.length) {
-              const v = values[valIdx];
-              setSelectedValue(v);
-              valRef.current = v;
-            }
-          } else if (row === 0 && suitRef.current !== null && valRef.current === null) {
-            // Tocco sulla riga semi quando il seme è già scelto = K
-            setSelectedValue("K");
-            valRef.current = "K";
-          }
-        } else {
-          // TOCCO FUORI DALLA GRIGLIA -> Se il seme è scelto, è un RE (K)
-          if (suitRef.current !== null && valRef.current === null) {
-            setSelectedValue("K");
-            valRef.current = "K";
-          }
+      if (isInsideGrid) {
+        const col = Math.floor((relX - gridLeft) / (gridWidth / 4));
+        const row = Math.floor((relY - gridTop) / (gridHeight / 3));
+        const valIdx = row * 4 + col;
+        if (valIdx >= 0 && valIdx < values.length) {
+          const v = values[valIdx];
+          setSelectedValue(v);
+          valRef.current = v;
         }
+      } else {
+        setSelectedValue("K");
+        valRef.current = "K";
       }
+    } else if (currentlyValSet && !currentlySuitSet && e.touches.length === 2) {
+      // Secondo tocco determina il seme basato sui quadranti dello schermo
+      const touch = e.touches[1];
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      let s = "♥";
+      if (touch.clientX < w / 2 && touch.clientY < h / 2) {
+        s = "♥"; // Q1: Top-Left
+      } else if (touch.clientX >= w / 2 && touch.clientY < h / 2) {
+        s = "♦"; // Q2: Top-Right
+      } else if (touch.clientX >= w / 2 && touch.clientY >= h / 2) {
+        s = "♣"; // Q3: Bottom-Right
+      } else if (touch.clientX < w / 2 && touch.clientY >= h / 2) {
+        s = "♠"; // Q4: Bottom-Left
+      }
+
+      setSelectedSuit(s);
+      suitRef.current = s;
     }
 
     if (e.touches.length === 2) {
@@ -276,11 +276,11 @@ export default function App() {
             {selectedSuit || "♥"}
           </div>
 
-          {/* GRIGLIE DI SELEZIONE: Invisibili ma attive tramite logica touch */}
-          {isLoaded && !isSelectionDone && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0">
+          {/* GRIGLIE DI SELEZIONE: Scompaiono immediatamente dopo aver scelto il valore */}
+          {isLoaded && !selectedValue && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div 
-                className="absolute grid grid-cols-4 grid-rows-4"
+                className="absolute border-2 border-white/40 grid grid-cols-4 grid-rows-3 bg-white/5"
                 style={{
                   width: '90%',
                   height: '56%',
@@ -288,9 +288,14 @@ export default function App() {
                   top: '22%',
                 }}
               >
-                {/* Struttura mantenuta per coerenza ma invisibile */}
-                {Array.from({ length: 16 }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-center" />
+                {/* Righe 1-3: Valori - Scompaiono quando selezionati */}
+                {values.map((val, i) => (
+                  <div 
+                    key={i} 
+                    className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'opacity-0 scale-50' : ''}`}
+                  >
+                    {val}
+                  </div>
                 ))}
               </div>
             </div>
