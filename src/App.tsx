@@ -31,6 +31,7 @@ export default function App() {
  
   const valRef = useRef<string | null>(null);
   const suitRef = useRef<string | null>(null);
+  const lastSuitTapRef = useRef<{ time: number, index: number } | null>(null);
 
   const suits = [
     { symbol: "♥", color: "text-red-600" },
@@ -79,9 +80,21 @@ export default function App() {
           const row = Math.floor((relY - gridTop) / (gridHeight / rowsCount));
           
           if (row === 0 && col >= 0 && col < 4 && suitRef.current === null) {
+            const now = Date.now();
             const s = suits[col].symbol;
-            setSelectedSuit(s);
-            suitRef.current = s;
+            
+            // Verifica Doppio Tocco sul Seme
+            if (lastSuitTapRef.current && lastSuitTapRef.current.index === col && (now - lastSuitTapRef.current.time < 500)) {
+              setSelectedSuit(s);
+              setSelectedValue("K");
+              suitRef.current = s;
+              valRef.current = "K";
+              lastSuitTapRef.current = null;
+            } else {
+              setSelectedSuit(s);
+              suitRef.current = s;
+              lastSuitTapRef.current = { time: now, index: col };
+            }
           } else if (row > 0 && valRef.current === null) {
             const valIdx = (row - 1) * 4 + col;
             if (valIdx >= 0 && valIdx < values.length) {
@@ -217,10 +230,10 @@ export default function App() {
             className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
             style={{
               left: '51.6%',
-              top: '37.8%',
+              top: '36.5%',
               width: '1.5%',
               height: '1.5%',
-              fontSize: '1.1vh',
+              fontSize: '0.3vh',
               lineHeight: 1,
               opacity: 0.9
             }}
@@ -231,11 +244,11 @@ export default function App() {
           <div 
             className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
             style={{
-              left: '64.1%',
-              top: '37.5%',
+              left: '63.2%',
+              top: '36.2%',
               width: '1.5%',
               height: '1.5%',
-              fontSize: '1.1vh',
+              fontSize: '0.3vh',
               lineHeight: 1,
               opacity: 0.9
             }}
