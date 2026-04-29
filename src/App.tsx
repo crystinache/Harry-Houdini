@@ -85,8 +85,8 @@ export default function App() {
       }
       const currentCenter = { x: cx / e.touches.length, y: cy / e.touches.length };
       
-      // Sposta l'immagine solo se siamo zoomati
-      if (scale.get() > 1.05) {
+      // Sposta l'immagine non appena iniziamo lo zoom
+      if (scale.get() > 1.01) {
         x.set(x.get() + (currentCenter.x - lastCenter.current.x));
         y.set(y.get() + (currentCenter.y - lastCenter.current.y));
       }
@@ -164,30 +164,30 @@ export default function App() {
           <>
             {/* Valore nell'occhio sinistro (suo destro) */}
             <div 
-              className="absolute text-white font-bold pointer-events-none flex items-center justify-center"
+              className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
-                left: '44.8%',
-                top: '35.8%',
-                width: '1%',
-                height: '1%',
-                fontSize: '0.45vw',
+                left: '44.3%',
+                top: '46.5%',
+                width: '1.5%',
+                height: '1.5%',
+                fontSize: '0.6vw',
                 lineHeight: 1,
-                opacity: 0.9
+                opacity: scale.get() > 1.2 ? 0.9 : 0
               }}
             >
               {selectedValue}
             </div>
             {/* Seme nell'occhio destro (suo sinistro) */}
             <div 
-              className="absolute text-white font-bold pointer-events-none flex items-center justify-center"
+              className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
-                left: '55.3%',
-                top: '35.8%',
-                width: '1%',
-                height: '1%',
-                fontSize: '0.45vw',
+                left: '55.7%',
+                top: '46.5%',
+                width: '1.5%',
+                height: '1.5%',
+                fontSize: '0.6vw',
                 lineHeight: 1,
-                opacity: 0.9
+                opacity: scale.get() > 1.2 ? 0.9 : 0
               }}
             >
               {selectedSuit}
@@ -195,9 +195,9 @@ export default function App() {
           </>
         )}
 
-        {/* GRIGLIE DI SELEZIONE (Scompaiono dopo la scelta) */}
-        {!isSelectionDone && isLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
+        {/* GRIGLIE DI SELEZIONE (Scompaiono non appena iniziamo lo zoom se la selezione è pronta) */}
+        {isLoaded && (!isSelectionDone || scale.get() < 1.05) && (
+          <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${scale.get() > 1.05 ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
             {/* Griglia Valori */}
             <div 
               className="absolute border-2 border-white/40 grid grid-cols-3 grid-rows-4 bg-white/5"
@@ -211,7 +211,7 @@ export default function App() {
               {values.map((val, i) => (
                 <div 
                   key={i} 
-                  onPointerDown={(e) => { e.stopPropagation(); setSelectedValue(val); }}
+                  onPointerDown={() => setSelectedValue(val)}
                   className={`border border-white/20 flex items-center justify-center text-white text-4xl sm:text-6xl font-bold transition-all ${selectedValue === val ? 'bg-white/30 scale-95 shadow-inner' : 'hover:bg-white/10 active:bg-white/20'}`}
                 >
                   {val}
@@ -232,7 +232,7 @@ export default function App() {
               {suits.map((suit) => (
                 <div 
                   key={suit.symbol} 
-                  onPointerDown={(e) => { e.stopPropagation(); setSelectedSuit(suit.symbol); }}
+                  onPointerDown={() => setSelectedSuit(suit.symbol)}
                   className={`border border-white/20 flex items-center justify-center text-5xl sm:text-7xl font-bold transition-all ${selectedSuit === suit.symbol ? 'bg-white/30 scale-95 shadow-inner' : 'hover:bg-white/10 active:bg-white/20'} ${suit.color}`}
                 >
                   {suit.symbol}
