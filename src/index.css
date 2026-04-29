@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", serif;
+  --font-ornate: "Cinzel Decorative", serif;
+  --font-old: "IM Fell English", serif;
+
+  --color-parchment: #f4e4bc;
+  --color-vintage-red: #8b0000;
+  --color-gold: #b8860b;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--color-parchment)] text-gray-900;
+    background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+  }
+}
+
+.vintage-text-shadow {
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.5), -1px -1px 0px rgba(255,255,255,0.3);
+}
+
+.ornate-border {
+  border-image: url('https://www.transparenttextures.com/patterns/ornate-lace.png') 30 round;
+}
