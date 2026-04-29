@@ -265,12 +265,12 @@ export default function App() {
             className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
             style={{
               left: '63.2%',
-              top: '36.2%',
+              top: '36.3%',
               width: '1.5%',
               height: '1.5%',
               fontSize: '0.29vh',
               lineHeight: 1,
-              opacity: 0.45
+              opacity: 0.4
             }}
           >
             {selectedSuit || "♥"}
