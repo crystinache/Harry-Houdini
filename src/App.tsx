@@ -12,7 +12,8 @@ export default function App() {
   const [selectedSuit, setSelectedSuit] = useState<string | null>(null);
   const [lastResetTap, setLastResetTap] = useState(0);
   
-  const posterUrl = "https://i.imgur.com/Su1cI42.png";
+  const posterUrl = "https://i.imgur.com/MJzV4Fm.png";
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Stati per lo Zoom e il Pan usando Motion Values per prestazioni ottimali
   const scale = useMotionValue(1);
@@ -45,7 +46,34 @@ export default function App() {
 
   // Gestione dei gesti Touch per Zoom (Pinch) e Pan
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
+    // Manual Hit Test per selezione immediata durante il pinch
+    if (e.touches.length === 2 && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      let newVal: string | null = null;
+      let newSuit: string | null = null;
+
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        const relX = (touch.clientX - rect.left) / rect.width;
+        const relY = (touch.clientY - rect.top) / rect.height;
+
+        // Hit test Valori
+        if (relX >= 0.05 && relX <= 0.6 && relY >= 0.22 && relY <= 0.78) {
+          const col = Math.floor((relX - 0.05) / (0.55 / 3));
+          const row = Math.floor((relY - 0.22) / (0.56 / 4));
+          const idx = row * 3 + col;
+          if (idx >= 0 && idx < values.length) newVal = values[idx];
+        }
+        // Hit test Semi
+        if (relX >= 0.6 && relX <= 1.0 && relY >= 0.22 && relY <= 0.78) {
+          const row = Math.floor((relY - 0.22) / (0.56 / 4));
+          if (row >= 0 && row < suits.length) newSuit = suits[row].symbol;
+        }
+      }
+
+      if (newVal) setSelectedValue(newVal);
+      if (newSuit) setSelectedSuit(newSuit);
+
       const d = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -139,6 +167,7 @@ export default function App() {
 
       {/* Contenitore Immagine con Zoom e Pan fluidi */}
       <motion.div 
+        ref={containerRef}
         style={{ 
           scale: smoothScale,
           x: smoothX,
@@ -167,12 +196,12 @@ export default function App() {
               className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
                 left: '44.3%',
-                top: '46.5%',
+                top: '51.5%',
                 width: '1.5%',
                 height: '1.5%',
                 fontSize: '0.6vw',
                 lineHeight: 1,
-                opacity: scale.get() > 1.2 ? 0.9 : 0
+                opacity: scale.get() > 1.25 ? 0.9 : 0
               }}
             >
               {selectedValue}
@@ -182,12 +211,12 @@ export default function App() {
               className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
                 left: '55.7%',
-                top: '46.5%',
+                top: '51.5%',
                 width: '1.5%',
                 height: '1.5%',
                 fontSize: '0.6vw',
                 lineHeight: 1,
-                opacity: scale.get() > 1.2 ? 0.9 : 0
+                opacity: scale.get() > 1.25 ? 0.9 : 0
               }}
             >
               {selectedSuit}
