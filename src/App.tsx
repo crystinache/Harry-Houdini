@@ -210,7 +210,7 @@ export default function App() {
       >
         <div 
           ref={containerRef}
-          className="relative max-h-[100dvh] max-w-full aspect-[2/3] shadow-[0_0_100px_rgba(0,0,0,0.9)] flex items-center justify-center bg-[#0a0a0a]"
+          className="relative w-full md:w-auto md:h-[100vh] aspect-[2/3] shadow-[0_0_100px_rgba(0,0,0,0.9)] flex items-center justify-center bg-[#0a0a0a]"
         >
           <img 
             src={posterUrl} 
@@ -250,7 +250,7 @@ export default function App() {
               height: '1.5%',
               fontSize: '0.29vh',
               lineHeight: 1,
-              opacity: 0.9
+              opacity: 0.8
             }}
           >
             {selectedSuit || "♥"}
