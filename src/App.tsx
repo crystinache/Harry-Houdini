@@ -8,8 +8,8 @@ import { motion, useSpring, useMotionValue } from "motion/react";
 
 export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<string | null>(null);
-  const [selectedSuit, setSelectedSuit] = useState<string | null>(null);
+  const [selectedValue, setSelectedValue] = useState<string | null>("K");
+  const [selectedSuit, setSelectedSuit] = useState<string | null>("♥");
   const [lastResetTap, setLastResetTap] = useState(0);
   
   const posterUrl = "https://i.imgur.com/MJzV4Fm.png";
@@ -29,8 +29,8 @@ export default function App() {
   const touchStartScale = useRef<number>(1);
   const lastCenter = useRef<{x: number, y: number} | null>(null);
 
-  const valRef = useRef<string | null>(null);
-  const suitRef = useRef<string | null>(null);
+  const valRef = useRef<string | null>("K");
+  const suitRef = useRef<string | null>("♥");
 
   const suits = [
     { symbol: "♥", color: "text-red-600" },
@@ -216,8 +216,8 @@ export default function App() {
             <div 
               className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
-                left: '44.3%',
-                top: '55.5%',
+                left: '51.6%',
+                top: '37.8%',
                 width: '1.5%',
                 height: '1.5%',
                 fontSize: '0.7vw',
@@ -227,12 +227,13 @@ export default function App() {
             >
               {selectedValue}
             </div>
+
             {/* Seme nell'occhio destro (suo sinistro) */}
             <div 
               className="absolute text-white font-bold pointer-events-none flex items-center justify-center transition-opacity duration-300"
               style={{
-                left: '55.7%',
-                top: '55.5%',
+                left: '64.1%',
+                top: '37.5%',
                 width: '1.5%',
                 height: '1.5%',
                 fontSize: '0.7vw',
