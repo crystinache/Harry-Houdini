@@ -46,8 +46,8 @@ export default function App() {
 
   // Gestione dei gesti Touch per Zoom (Pinch) e Pan
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Manual Hit Test per selezione immediata (funziona sia per 1 che per 2 dita)
-    if (containerRef.current) {
+    // Manual Hit Test per selezione immediata (funziona solo se la selezione non è completa)
+    if (containerRef.current && !isSelectionDone) {
       const rect = containerRef.current.getBoundingClientRect();
       const gridLeft = 0.05;
       const gridWidth = 0.90;
@@ -199,7 +199,7 @@ export default function App() {
                 height: '1.5%',
                 fontSize: '0.7vw',
                 lineHeight: 1,
-                opacity: scale.get() > 1.25 ? 0.9 : 0
+                opacity: isSelectionDone ? 0.9 : 0
               }}
             >
               {selectedValue}
@@ -214,7 +214,7 @@ export default function App() {
                 height: '1.5%',
                 fontSize: '0.7vw',
                 lineHeight: 1,
-                opacity: scale.get() > 1.25 ? 0.9 : 0
+                opacity: isSelectionDone ? 0.9 : 0
               }}
             >
               {selectedSuit}
