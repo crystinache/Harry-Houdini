@@ -248,7 +248,7 @@ export default function App() {
               top: '36.2%',
               width: '1.5%',
               height: '1.5%',
-              fontSize: '0.3vh',
+              fontSize: '0.38vh',
               lineHeight: 1,
               opacity: 0.9
             }}
