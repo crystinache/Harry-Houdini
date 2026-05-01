@@ -292,10 +292,25 @@ export default function App() {
               height: '1.5%',
               fontSize: '0.29vh',
               lineHeight: 1,
-              opacity: 0.4
+              opacity: 0.3
             }}
           >
-            {selectedSuit || "♥"}
+            {(() => {
+              const s = selectedSuit || "♥";
+              // Usiamo un SVG personalizzato solo per i Fiori per migliorare la leggibilità
+              if (s === "♣") {
+                return (
+                  <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: '1.2em', height: '1.2em' }}>
+                    <circle cx="12" cy="7.2" r="4.2" />
+                    <circle cx="7.1" cy="14.2" r="4.2" />
+                    <circle cx="16.9" cy="14.2" r="4.2" />
+                    <path d="M11 14 h2 v7 h-2 z" />
+                    <path d="M10 20 h4 v1 h-4 z" />
+                  </svg>
+                );
+              }
+              return s;
+            })()}
           </div>
 
           {/* GRIGLIE DI SELEZIONE: Invisibili ma attive tramite logica touch */}
